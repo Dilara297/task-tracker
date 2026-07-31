@@ -1,0 +1,97 @@
+{% extends "tasks/base_public.html" %}
+
+{% block content %}
+
+<div class="row justify-content-center mt-5">
+
+    <div class="col-lg-8">
+
+        <!-- Kullanıcı Bilgileri -->
+        <div class="card shadow mb-4">
+
+            <div class="card-header">
+                👤 Profilim
+            </div>
+
+            <div class="card-body">
+
+                <h5 class="mb-3">Kullanıcı Bilgileri</h5>
+
+                <p>
+                    <strong>Kullanıcı Adı:</strong>
+                    {{ user.username }}
+                </p>
+
+                <p class="mb-0">
+                    <strong>E-posta:</strong>
+                    {{ user.email }}
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- İstatistikler -->
+        <div class="row">
+
+            <div class="col-md-4 mb-3">
+
+                <div class="card shadow text-center">
+
+                    <div class="card-body">
+
+                        <h2>{{ total_tasks }}</h2>
+
+                        <p class="mb-0">
+                            Toplam Görev
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4 mb-3">
+
+                <div class="card shadow text-center">
+
+                    <div class="card-body">
+
+                        <h2>{{ completed_tasks }}</h2>
+
+                        <p class="mb-0">
+                            Tamamlanan
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4 mb-3">
+
+                <div class="card shadow text-center">
+
+                    <div class="card-body">
+
+                        <h2>{{ todo_tasks }}</h2>
+
+                        <p class="mb-0">
+                            Devam Eden
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

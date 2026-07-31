@@ -1,0 +1,44 @@
+{% extends "tasks/base_public.html" %}
+
+{% block content %}
+
+<div class="row justify-content-center align-items-center"
+     style="min-height:100vh;">
+
+    <div class="col-lg-5">
+
+        <div class="card shadow">
+
+            <div class="card-header">
+               Giriş Yap
+            </div>
+
+            <div class="card-body">
+
+                <form method="POST">
+
+                    {% csrf_token %}
+
+                    {{ form.as_p }}
+
+                    <button
+                        type="submit"
+                        class="btn btn-success btn-block">
+
+                        Giriş yap
+
+                    </button>
+
+                </form>
+                    <p class="text-center" style="margin-top: 20px;">
+                        Hesabın yok mu? <a href="{% url 'register' %}">Kayıt Ol</a>
+                    </p>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

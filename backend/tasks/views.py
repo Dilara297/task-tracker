@@ -1,11 +1,17 @@
 from rest_framework import viewsets
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
 from .models import Task
 from .serializers import TaskSerializer
 from django.shortcuts import render,redirect,get_object_or_404
 from .forms import RegisterForm,LoginForm
-from django.contrib.auth import login,logout
+from django.contrib.auth import login,logout,authenticate
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
@@ -21,6 +27,9 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+        
 @login_required
 def home(request):
     
@@ -167,3 +176,24 @@ def toggle_task(request, id):
 
     return redirect("home")
 
+@method_decorator(csrf_exempt, name='dispatch')
+class LoginAPIView(APIView):
+    def post(self,request):
+        username =request.data.get("username")
+        password=request.data.get("password")
+        
+        user=authenticate(
+            username=username,
+            password=password
+        )
+        if user is not None:
+            token, created=Token.objects.get_or_create(user=user)
+            
+            return Response({
+                "token":token.key,
+                "username":user.username
+            })
+        return Response(
+            {"error":"kullanıcı adı veye şifre yanlış"},
+            status=400
+        )

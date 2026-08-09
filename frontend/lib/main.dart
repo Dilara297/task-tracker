@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gorev_takip_flutter/screens/home_screen.dart';
+import 'package:gorev_takip_flutter/screens/LoginScreen.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 3, 46, 121)),
       ),
-      home: const HomeScreen()
+      home: const Loginscreen()
     );
   }
 }

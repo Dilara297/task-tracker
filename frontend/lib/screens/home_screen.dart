@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:gorev_takip_flutter/screens/LoginScreen.dart';
+import 'package:gorev_takip_flutter/screens/add_task.screen.dart';
 import 'package:gorev_takip_flutter/services/api_service.dart';
 import 'package:gorev_takip_flutter/models/task.dart';
+import 'package:gorev_takip_flutter/services/auth_service.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -86,8 +89,58 @@ String? errorMessage;
     return Scaffold(
       appBar:AppBar(
         title: Text("görevler"),
+        actions: [
+          IconButton(
+            onPressed: (){
+              showDialog(
+                context: context, 
+                builder: (context){
+                  return AlertDialog(
+                    title: const Text("çıkış yap"),
+                    content: const Text("çıkış yapmak istediginize emin misiniz?"),
+                    actions: [
+
+                      TextButton(onPressed: (){
+                        Navigator.pop(context);
+                      }, 
+                      child: const Text("HAYIR"),
+                      ),
+
+                      TextButton(onPressed: () async{
+                        final authService = AuthService();
+                        await  authService.logout();
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context)=> const Loginscreen(),
+                            ),
+                        );
+
+                      }, 
+                      child: const Text("EVET"),),
+                    ],
+                  );
+                },
+                );
+          }, 
+          icon: const Icon(Icons.logout),
+          ),
+        ],
       ) ,
       body:body,
+
+      floatingActionButton:FloatingActionButton(
+        onPressed: (){
+          Navigator.push(
+            context, 
+            MaterialPageRoute(
+              builder: (context)=> const AddTaskScreen(),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+        ),
       
     );
   } 

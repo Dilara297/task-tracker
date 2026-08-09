@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from .models import Task
+from django.contrib.auth.models import User
 from .serializers import TaskSerializer
 from django.shortcuts import render,redirect,get_object_or_404
 from .forms import RegisterForm,LoginForm
@@ -17,7 +18,10 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
     def get_queryset(self):
-        queryset = Task.objects.all().order_by('-created_at')
+        queryset = Task.objects.filter(
+            owner=self.request.user
+            ).order_by('-created_at')
+        
         completed = self.request.query_params.get('completed')
 
         if completed == 'true':
@@ -197,3 +201,37 @@ class LoginAPIView(APIView):
             {"error":"kullanıcı adı veye şifre yanlış"},
             status=400
         )
+        
+class RegisterAPIView(APIView):
+    def post(self,request):
+        username=request.data.get("username")
+        password=request.data.get("password")
+        email=request.data.get("email")
+        password2=request.data.get("password2")
+        
+        if password != password2:
+            return Response(
+                {
+                    "error":"şifreler eşleşmiyor"
+                },
+                status=400
+            )
+        
+        try:
+            User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+            return Response(
+                {
+                   "message":"kullanıcı başarıyla oluşturuldu" 
+                },
+                status=201
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+        

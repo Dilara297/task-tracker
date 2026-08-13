@@ -4,6 +4,7 @@ import 'package:gorev_takip_flutter/screens/add_task.screen.dart';
 import 'package:gorev_takip_flutter/services/api_service.dart';
 import 'package:gorev_takip_flutter/models/task.dart';
 import 'package:gorev_takip_flutter/services/auth_service.dart';
+import 'package:gorev_takip_flutter/screens/Task_detail_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ bool isLoading = true;
 
 String? errorMessage;
 
+final ApiService apiService =ApiService();
 
   @override
   void initState(){
@@ -34,8 +36,7 @@ String? errorMessage;
       errorMessage=null;
     });
     try{
-      final ApiService api= ApiService();// api ile  konuşacak nesneyi oluştur
-      final gelenTasks = await api.getTasks();//djangodan görev listesini bekle
+      final gelenTasks = await apiService.getTasks();//djangodan görev listesini bekle
 
       setState(() {
         tasks =gelenTasks;//gelen görevleri homescreenin hafızasına koy
@@ -77,11 +78,35 @@ String? errorMessage;
           return ListTile(
             title: Text(tasks[index].title),
             subtitle: Text(tasks[index].description),
-            trailing: Icon(
-              tasks[index].completed
-                ?Icons.check_circle
-                :Icons.radio_button_unchecked,
-            ),
+
+            onTap: ()async{
+              final result =await Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (context)=> TaskDetailScreen(
+                  task: tasks[index],//listedeki seçilmiş tek task. sırayla taskleri alıyoruz
+                  ),
+                  ),
+                  );
+                  if(result==true){
+                    await loadTasks();
+                  }
+            },
+            trailing:Checkbox(
+              value: tasks[index].completed, 
+              onChanged: (bool? value) async {
+                if(value != null){
+                  final updatedTask =await apiService.updateTask(
+                    tasks[index].id,
+                    tasks[index].title,
+                    tasks[index].description,
+                    value,
+                  );
+                  setState(() {
+                    tasks[index]=updatedTask;
+                  });
+                }
+              },
+              ),
           );
         },
       );
@@ -131,17 +156,17 @@ String? errorMessage;
       body:body,
 
       floatingActionButton:FloatingActionButton(
-        onPressed: (){
-          Navigator.push(
+        onPressed: () async{
+           await Navigator.push(
             context, 
             MaterialPageRoute(
               builder: (context)=> const AddTaskScreen(),
             ),
           );
+          loadTasks();
         },
         child: const Icon(Icons.add),
         ),
-      
     );
   } 
 }

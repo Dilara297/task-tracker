@@ -2,6 +2,10 @@ from rest_framework import serializers
 from .models import Task
 
 class TaskSerializer(serializers.ModelSerializer):
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
+    #owner apiden okunabilir ama istemciden gönderilmesi beklenemez
+
+
     class Meta:
         model = Task
         fields = '__all__'
@@ -12,6 +16,16 @@ class TaskSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        if data['completed'] and not data['description']:
-            raise serializers.ValidationError("Tamamlanan görevlerde açıklama boş bırakılamaz.")
+        completed= data.get('completed', False)
+        
+        description= data.get(
+            'description',
+            self.instance.description if self.instance else''
+        )
+        if completed and not description:
+            raise serializers.ValidationError(
+                "tamamlanan görevlerde açıklama boş bırakılamaz"
+            )
         return data
+    # data ['ompleted'] anahtar kesinikle varmış gibi davranır
+    # data.get('completed',False) varsa alır yoksa false kullanılır

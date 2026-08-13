@@ -121,4 +121,61 @@ class ApiService {
         }
     }
 
+    Future<Task> updateTask(
+      int id,
+      String title,
+      String description,
+      bool completed,
+    )async{
+      final url =Uri.parse("http://127.0.0.1:8000/api/tasks/$id/");
+
+      final prefs = await SharedPreferences.getInstance();
+      final token =prefs.getString("token");
+
+      final body={
+        "title":title,
+        "description":description,
+        "completed":completed,
+      };
+
+      final response =await http.patch(
+        url,
+        headers: {
+          "Content-Type":"application/json",
+          "Authorization":"Token $token",
+        },
+        body: jsonEncode(body)
+        );
+
+        if(response.statusCode==200){
+          final json = jsonDecode(response.body);
+          return Task.fromJson(json);
+        }else{
+          throw Exception("görevler güncellenemedi");
+        }
+    }
+
+    Future<void> deleteTask(
+      int id,
+    ) async{
+      final url = Uri.parse("http://127.0.0.1:8000/api/tasks/$id/");
+
+      final prefs =await SharedPreferences.getInstance();
+      final token = prefs.getString("token");
+
+      final response = await http.delete(
+        url,
+        headers: {
+          "Authorization":"Token $token",
+        },
+      );
+
+        if(response.statusCode==204){
+          return;
+        }else{
+          throw Exception("görev silinemedi");
+        }
+      
+    }
+
   }

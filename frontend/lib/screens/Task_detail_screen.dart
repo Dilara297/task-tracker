@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gorev_takip_flutter/screens/home_screen.dart';
 import 'package:gorev_takip_flutter/models/task.dart';
 import 'package:gorev_takip_flutter/services/api_service.dart';
 
@@ -18,8 +17,8 @@ class TaskDetailScreen extends StatefulWidget {
 class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   final ApiService apiService = ApiService();
-  TextEditingController titleController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
   bool isSaving= false;
   bool isDeleting=false;
 
@@ -37,8 +36,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     descriptionController.dispose();
     super.dispose();
   }
-
-
+@override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: Text("Görev Detayları"),),

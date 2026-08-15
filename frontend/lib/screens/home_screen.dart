@@ -4,8 +4,7 @@ import 'package:gorev_takip_flutter/screens/add_task.screen.dart';
 import 'package:gorev_takip_flutter/services/api_service.dart';
 import 'package:gorev_takip_flutter/models/task.dart';
 import 'package:gorev_takip_flutter/services/auth_service.dart';
-import 'package:gorev_takip_flutter/screens/Task_detail_screen.dart';
-
+import 'package:gorev_takip_flutter/widgets/task_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,170 +14,357 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<Task> tasks = [];
 
-List<Task> tasks= [];
+  bool isLoading = true;
 
-bool isLoading = true;
+  String? errorMessage;
 
-String? errorMessage;
-
-final ApiService apiService =ApiService();
+  final ApiService apiService = ApiService();
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     loadTasks();
-
   }
-  Future<void> loadTasks() async{
+
+  Future<void> loadTasks() async {
     setState(() {
-      isLoading=true;
-      errorMessage=null;
+      isLoading = true;
+      errorMessage = null;
     });
-    try{
-      final gelenTasks = await apiService.getTasks();//djangodan görev listesini bekle
+
+    try {
+      final gelenTasks = await apiService.getTasks();
+
+      if(!mounted) return;//bu state hala ekranda mevcutmu?
 
       setState(() {
-        tasks =gelenTasks;//gelen görevleri homescreenin hafızasına koy
-        isLoading=false;
+        tasks = gelenTasks;
+        isLoading = false;
       });
-      
-
-    }catch (e){
+    } catch (e) {
+      if(!mounted) return;
       setState(() {
-        errorMessage = "görevler yüklenemedi : tekrar deneyiniz";
-        isLoading=false;
-      });   
+        errorMessage = "Görevler yüklenemedi. Tekrar deneyiniz.";
+        isLoading = false;
+      });
     }
+  }
+  Widget buildTaskCard(Task task){
+    return TaskCard(
+      task: task, 
+      apiService: apiService, 
+      onTaskUpdated: ()async{
+        await loadTasks();
+      },
+    );
+  }
+  Widget buildEmptyState({
+    required IconData icon,
+    required String title,
+    String? description,
+    required Color backgroundColor,
+    required Color iconColor,
+  }){
+    return Padding(
+      padding: const  EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 42,
+              color: iconColor,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (description!=null) ...[
+              const SizedBox(height: 6),
+              Text(
+                description,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
   @override
   Widget build(BuildContext context) {
 
+    final activeTasks=tasks.where((task)=> !task.completed).toList();
+      
+    final completedTasks=tasks.where((task)=> task.completed).toList();
+
     Widget body;
 
-    if(isLoading){
-      body=const Center(
-        child: CircularProgressIndicator(),
-      );
-
-    }else if(errorMessage != null){
-      body=Center(
-        child : Text(errorMessage!),
-      );
-
-    }else if (tasks.isEmpty){
+    if (isLoading) {
       body = const Center(
-        child: Text("henüz görev eklenmemiş"),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text("Görevler Yükleniyor..."),
+          ],
+        ),
       );
+    } else if (errorMessage != null) {
+      body = Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+             const Icon(
+                Icons.error,
+                size: 48,
+                color: Colors.amberAccent,
+            ),
+            const SizedBox(height: 16),
+            const Text("HATA OLUŞTU"),
 
-    }else{
-      body= ListView.builder(
-        itemCount: tasks.length,
-        itemBuilder: (context,index){
-          return ListTile(
-            title: Text(tasks[index].title),
-            subtitle: Text(tasks[index].description),
+            const SizedBox(height: 16),
+            Text(errorMessage!),
 
-            onTap: ()async{
-              final result =await Navigator.push(
-                context, 
-                MaterialPageRoute(builder: (context)=> TaskDetailScreen(
-                  task: tasks[index],//listedeki seçilmiş tek task. sırayla taskleri alıyoruz
-                  ),
-                  ),
-                  );
-                  if(result==true){
-                    await loadTasks();
-                  }
-            },
-            trailing:Checkbox(
-              value: tasks[index].completed, 
-              onChanged: (bool? value) async {
-                if(value != null){
-                  final updatedTask =await apiService.updateTask(
-                    tasks[index].id,
-                    tasks[index].title,
-                    tasks[index].description,
-                    value,
-                  );
-                  setState(() {
-                    tasks[index]=updatedTask;
-                  });
-                }
-              },
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: ()async{
+                await loadTasks();
+            }, 
+            child: const Text("TEKRAR DENE"),
+            ),
+          ],
+        ),
+      );
+    } else if (tasks.isEmpty) {
+      body = Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: const Color(0xFFF8F5FF),
+        child:Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child:const Icon(
+                Icons.assignment_outlined,
+                size: 48,
+                color: Colors.deepPurple,
+            ),
+            
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "Henüz Görev Yok",
+              style: TextStyle(
+                fontSize:22,
+              fontWeight:FontWeight.w600,
               ),
-          );
-        },
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "İlk görevini ekleyerek başlayabilirsin",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: ()async{
+                 await Navigator.push(
+                  context, 
+                  MaterialPageRoute(builder: (context)=> const AddTaskScreen(),),);
+                  await loadTasks();
+            }, 
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.add),
+                const SizedBox(width: 8),
+                const Text("GÖREV EKLE"),
+              ],
+            ),
+            ),
+          ],
+          ),
+        ),
       );
-    }
+    } else {
+      body = ListView(// 2 card kullanabilmek için bu yapıyı kullandık .builder tek card kabul ediyor
+        children:[
+          const Padding(padding: EdgeInsets.fromLTRB(16, 20, 16, 8),
+          child: Text(
+            "DEVAM EDEN GÖREVLER",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+          if(activeTasks.isEmpty)
+          buildEmptyState(
+            icon: Icons.check_circle_outline, 
+            title: "Tüm görevlerin tamamlandı!", 
+            description: "Yeni bir görev ekleyerek devam edebilirsin",
+            backgroundColor: Colors.deepPurple.shade50, 
+            iconColor: Colors.deepPurple,
+            ),
+          if(activeTasks.isNotEmpty)
+          ...activeTasks.map(buildTaskCard),
+            
+      const SizedBox(height:24),
+
+      const Padding(
+      padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Text(
+        "TAMAMLANAN GÖREVLER",
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        ),
+      ),
+      if(completedTasks.isEmpty)
+      buildEmptyState(
+        icon: Icons.assignment_outlined, 
+        title: "Henüz tamamlanan görev yok", 
+        backgroundColor: Colors.grey.shade100, 
+        iconColor: Colors.grey,
+        ),
+
+      if (completedTasks.isNotEmpty)
+      ...completedTasks.map(buildTaskCard), 
+    ],
+  );
+}
     return Scaffold(
-      appBar:AppBar(
-        title: Text("görevler"),
+      appBar: AppBar(
         actions: [
           IconButton(
-            onPressed: (){
+            tooltip: "Çıkış Yap",
+            onPressed: () {
               showDialog(
-                context: context, 
-                builder: (context){
+                context: context,
+                builder: (context) {
                   return AlertDialog(
-                    title: const Text("çıkış yap"),
-                    content: const Text("çıkış yapmak istediginize emin misiniz?"),
+                    title: const Text("Çıkış yap"),
+                    content: const Text(
+                      "Çıkış yapmak istediğinize emin misiniz?",
+                    ),
                     actions: [
-
-                      TextButton(onPressed: (){
-                        Navigator.pop(context);
-                      }, 
-                      child: const Text("HAYIR"),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text("HAYIR"),
                       ),
+                      TextButton(
+                        onPressed: () async {
+                          final authService = AuthService();
 
-                      TextButton(onPressed: () async{
-                        final authService = AuthService();
-                        await  authService.logout();
+                          await authService.logout();
 
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context)=> const Loginscreen(),
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const Loginscreen(),
                             ),
-                        );
-
-                      }, 
-                      child: const Text("EVET"),),
+                          );
+                        },
+                        child: const Text("EVET"),
+                      ),
                     ],
                   );
                 },
-                );
-          }, 
-          icon: const Icon(Icons.logout),
+              );
+            },
+            icon: const Icon(Icons.logout),
           ),
         ],
-      ) ,
-      body:body,
+      ),
 
-      floatingActionButton:FloatingActionButton(
-        onPressed: () async{
-           await Navigator.push(
-            context, 
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20,24,20,16),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  "GÖREVLER",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                Text(
+                  "${tasks.length} görev",
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: body,
+          ),
+        ],
+      ),
+
+      floatingActionButton: tasks.isEmpty
+      ?null
+      :FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
+        elevation: 4,
+        tooltip: "Görev Ekle",
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        onPressed: () async {
+          await Navigator.push(
+            context,
             MaterialPageRoute(
-              builder: (context)=> const AddTaskScreen(),
+              builder: (context) =>const AddTaskScreen(),
             ),
           );
-          loadTasks();
+          await loadTasks();
         },
-        child: const Icon(Icons.add),
-        ),
+        child: const Icon(Icons.add,color: Colors.white),
+      ),
     );
-  } 
+  }
 }
-  
-  //GENEL AKIŞ
-  // HomeScreen açılır. initState() sadece bir kez çalışır 
-  //ve loadTasks() çağrılır. loadTasks() içinde ApiService 
-  //kullanılarak Django API'sine HTTP GET isteği gönderilir. 
-  //Sunucudan gelen cevap önce response.body olarak String şeklindedir. 
-  //jsonDecode() ile bu veri Dart'ın anlayacağı Map/List yapısına çevrilir.
-  // Görevlerin bulunduğu results listesi alınır. Listenin her elemanı Task.fromJson() 
-  //ile bir Task nesnesine dönüştürülür ve elimizde List<Task> oluşur. 
-  //Bu liste HomeScreen'deki tasks değişkenine atanır. setState() çağrıldığı için
-  // Flutter ekranın değiştiğini anlar ve build() metodunu tekrar çalıştırır.
-  // ListView.builder da bu listedeki her görevi tek tek ekrana çizer.

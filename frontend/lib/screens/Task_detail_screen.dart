@@ -42,65 +42,87 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         appBar: AppBar(title: Text("Görev Detayları"),),
         body: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
 
-              TextField(
-                controller: titleController,
-                style: const TextStyle(
-                  fontSize: 24,
-                ),
-              ),
-              SizedBox(
-                height: 16,
-              ),
-              TextField(
-                controller: descriptionController,
-                maxLines: 4,
-              ),
-              SizedBox(
-                height: 16,
-              ),
-              ElevatedButton(
-                onPressed: isSaving
-                  ?null
-                  : () async {
-                      setState((){//kaydetme başladı
-                        isSaving = true;
-                      });
-                      try{
-                        await apiService.updateTask( 
-                          widget.task.id,
-                          titleController.text,
-                          descriptionController.text,
-                          widget.task.completed,
-                      );
-                        Navigator.pop(context,true);
+                  TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: "Görev başlıgı",
+                      border: OutlineInputBorder(),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 20,
+                   ),
+                  ),
+                  SizedBox(
+                    height: 16,
+                  ),
+                  TextField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(
+                      labelText: "Açıklama",
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 4,
+                  ),
+                  SizedBox(
+                    height: 16,
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: isSaving
+                        ?null
+                        : () async {
+                          setState((){//kaydetme başladı
+                           isSaving = true;
+                         });
+                          try{
+                            await apiService.updateTask( 
+                              widget.task.id,
+                            titleController.text,
+                              descriptionController.text,
+                              widget.task.completed,
+                          );
+                            Navigator.pop(context,true);
 
-                      }catch(e){
-                        setState(() {//kaydetme bitti
-                          isSaving=false;
-                        });
+                         }catch(e){
+                            setState(() {//kaydetme bitti
+                              isSaving=false;
+                            });
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("görev güncellenemedi"),
-                            ),
-                        );
-                      }
-                }, 
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("görev güncellenemedi"),
+                                ),
+                            );
+                          }
+                    }, 
                 child: isSaving
-                  ?const SizedBox(//true ise dönen yuvarlak loding işareti 
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(),
-                  )
-                  : const Text("KAYDET"),//false ise kaydet yazısı olacak
-                  )
-            ],
+                      ?const SizedBox(//true ise dönen yuvarlak loding işareti 
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(),
+                      )
+                      : const Text("KAYDET"),//false ise kaydet yazısı olacak
+                      )
+                  ),
+                  ],
+              ),
+            ),
           ),
-          ),
+        ),
         floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
           onPressed:isDeleting
             ?null
             :()async{

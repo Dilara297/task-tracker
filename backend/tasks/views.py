@@ -12,7 +12,7 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-
+from rest_framework.permissions import IsAuthenticated
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
@@ -168,7 +168,8 @@ def profil(request):
         }
     )
     
-
+if True
+    print("test")
 
 @login_required
 def toggle_task(request, id):
@@ -234,4 +235,30 @@ class RegisterAPIView(APIView):
                 {"error": str(e)},
                 status=400
             )
+class ProfileAPIView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+    
+    def get(self,request):
+        user=request.user
+        
+        total_tasks=Task.objects.filter(owner=user).count()
+        
+        completed_tasks=Task.objects.filter(
+            owner=user,
+            completed=True
+        ).count()
+        
+        todo_tasks=Task.objects.filter(
+            owner=user,
+            completed=False
+        ).count()
+        
+        return Response({# apinin karşı tarafa (flutter a)verdigi cevap
+            "username":user.username,
+            "email": user.email,
+            "total_tasks":total_tasks,
+            "completed_tasks":completed_tasks,
+            "todo_tasks":todo_tasks,
+        })
         

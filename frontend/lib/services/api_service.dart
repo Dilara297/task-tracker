@@ -16,7 +16,9 @@ class ApiService {
       headers: {
         "Authorization":"Token $token",//"Authorization" isimli header'ın değeri "Token $token" olsun.
       },
-      );
+    );
+      print(response.body);
+
     if(response.statusCode==200){// eger istek başarılıysa devam et
       final json=jsonDecode(response.body);
 
@@ -176,6 +178,29 @@ class ApiService {
           throw Exception("görev silinemedi");
         }
       
+    }
+
+    Future<Map<String, dynamic>> getProfile()async{
+      final url=Uri.parse("http://127.0.0.1:8000/api/profile/");
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("token");
+
+      final response= await http.get(
+        url,
+        headers: {"Authorization": "Token $token"},
+      );
+      
+      if (response.statusCode==200){
+        final json=jsonDecode(response.body);
+
+        print(json);
+        
+      return json;
+      }else{
+        throw Exception("Profil alınamadı: ${response.statusCode}-${response.body}");
+      }
+
     }
 
   }

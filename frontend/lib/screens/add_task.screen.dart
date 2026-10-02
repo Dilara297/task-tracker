@@ -22,38 +22,79 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       ),
       body: Padding(
         padding:EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text("Başlık"),
-            TextField(
-              controller: titlecontroller,
-              decoration: InputDecoration(
-                hintText: "Görev Başlıgı",
-              ),
-            ),
-            TextField(
-              controller: descriptioncontroller,
-              decoration: InputDecoration(
-                hintText: "Açıklama",
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async{
-                await apiService.addTask(
-                  titlecontroller.text,
-                  descriptioncontroller.text,
-                );
+        child:Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
 
-                  titlecontroller.clear();
-                  descriptioncontroller.clear();
+                const Icon(
+                  Icons.add_task,
+                  size: 50,
+                ),
 
-                  Navigator.pop(context);
-            }, 
-            child: const Text("kaydet"),
+                const SizedBox(height: 12),
+
+                const Text(
+                  "Yeni görev oluştur",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text("Yapman gereken bir görev ekle"),
+
+                const SizedBox(height: 24),
+
+                TextField(
+                  controller: titlecontroller,
+                  decoration: InputDecoration(
+                    labelText: "Görev Başlığı",
+                    hintText: "Örneğin: İngilizce çalış",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16),
+
+                TextField(
+                  controller: descriptioncontroller,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: "Açıklama",
+                    hintText: "Görev hakkında kısa bir açıklama yazınız",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child:ElevatedButton( 
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () async{
+                    await apiService.addTask(
+                      titlecontroller.text,
+                      descriptioncontroller.text,
+                    );
+
+                      titlecontroller.clear();
+                      descriptioncontroller.clear();
+
+                      Navigator.pop(context);
+                }, 
+                child: const Text("Görevi kaydet"),
+                ),
+                ),
+              ],
             ),
-          ],
+            ),
         ),
-        ),
+      ),
       );
   }
 }

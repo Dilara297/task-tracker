@@ -5,6 +5,7 @@ import 'package:gorev_takip_flutter/services/api_service.dart';
 import 'package:gorev_takip_flutter/models/task.dart';
 import 'package:gorev_takip_flutter/services/auth_service.dart';
 import 'package:gorev_takip_flutter/widgets/task_card.dart';
+import 'package:gorev_takip_flutter/screens/profil_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -266,6 +267,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          IconButton(
+            tooltip: "profile",
+            onPressed: (){
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (context)=> const ProfileScreen(),
+                ),
+              );
+            }, 
+            icon: const Icon(Icons.person),
+            ),
           IconButton(
             tooltip: "Çıkış Yap",
             onPressed: () {

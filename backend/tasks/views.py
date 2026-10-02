@@ -167,9 +167,6 @@ def profil(request):
             "todo_tasks": todo_tasks
         }
     )
-    
-if True
-    print("test")
 
 @login_required
 def toggle_task(request, id):
